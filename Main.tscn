@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://if6jryi574nr"]
+
+[ext_resource type="Script" uid="uid://xk2mswdjke2e" path="res://Main.gd" id="1_main"]
+
+[node name="WillowmereRPG" type="Node2D" unique_id=1328301884]
+script = ExtResource("1_main")
+
+[node name="GeminiRequest" type="HTTPRequest" parent="." unique_id=149833412]
+timeout = 45.0
+
+[connection signal="request_completed" from="GeminiRequest" to="." method="_on_gemini_request_completed"]
