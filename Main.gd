@@ -2,7 +2,7 @@ extends Node2D
 
 ## Willowmere is a small playable RPG scene. Replace this placeholder with your
 ## Google AI Studio key, or paste one into the in-game Settings panel.
-const GEMINI_API_KEY: String = "GEMINI_API_HERE"
+const GEMINI_API_KEY: String = "YOUR_API_KEY_HERE"
 const GEMINI_MODEL: String = "gemini-3.6-flash"
 const GEMINI_ENDPOINT: String = "https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=" % GEMINI_MODEL
 
@@ -11,13 +11,6 @@ const PLAYER_SPEED := 145.0
 const NPC_INTERACT_DISTANCE := 68.0
 const ACTOR_FRAME_SIZE := 32
 
-const COLOR_GRASS := Color("#72B85C")
-const COLOR_GRASS_DARK := Color("#57974E")
-const COLOR_PATH := Color("#C69A6B")
-const COLOR_PATH_EDGE := Color("#A67858")
-const COLOR_WATER := Color("#4C9EAF")
-const COLOR_PANEL := Color("#172538")
-const COLOR_PANEL_DARK := Color("#0D1828")
 const COLOR_BORDER := Color("#35506B")
 const COLOR_TEXT := Color("#F6F0DB")
 const COLOR_MUTED := Color("#A5B3B1")
@@ -26,16 +19,6 @@ const COLOR_ACCENT := Color("#F2B35F")
 const COLOR_MINT := Color("#77D3B0")
 const COLOR_RED := Color("#F58D78")
 
-const TILESET_TEXTURE: Texture2D = preload("res://asset_pack/Tileset/Tileset Grass Spring.png")
-const HOUSE_TEXTURE: Texture2D = preload("res://asset_pack/Objects/House.png")
-const TREE_TEXTURE: Texture2D = preload("res://asset_pack/Objects/Maple Tree.png")
-const ROAD_TEXTURE: Texture2D = preload("res://asset_pack/Objects/Road copiar.png")
-const FENCE_TEXTURE: Texture2D = preload("res://asset_pack/Objects/Fence's copiar.png")
-const CROPS_TEXTURE: Texture2D = preload("res://asset_pack/Objects/Spring Crops.png")
-const CHEST_TEXTURE: Texture2D = preload("res://asset_pack/Objects/chest.png")
-const COW_TEXTURE: Texture2D = preload("res://asset_pack/Farm Animals/Female Cow Brown.png")
-const CHICKEN_TEXTURE: Texture2D = preload("res://asset_pack/Farm Animals/Chicken Red.png")
-const BABY_CHICKEN_TEXTURE: Texture2D = preload("res://asset_pack/Farm Animals/Baby Chicken Yellow.png")
 const PLAYER_IDLE_TEXTURE: Texture2D = preload("res://asset_pack/Character/Idle.png")
 const PLAYER_WALK_TEXTURE: Texture2D = preload("res://asset_pack/Character/Walk.png")
 
@@ -61,7 +44,15 @@ var dialogue_api_status: Label
 var dialogue_typing_row: Control
 var api_status_label: Label
 var settings_overlay: Control
+var title_overlay: Control
+var quest_title_label: Label
+var quest_detail_label: Label
+var forage_spots: Array[Dictionary] = []
 
+const QUEST_CROP_TARGET := 5
+var crops_collected := 0
+var quest_completed := false
+var game_started := false
 var dialogue_open := false
 var active_npc: Dictionary = {}
 var dialogue_history: Array[Dictionary] = []
@@ -71,257 +62,67 @@ var api_key: String = GEMINI_API_KEY
 
 
 func _ready() -> void:
-	world = Node2D.new()
-	world.name = "Willowmere"
-	add_child(world)
-	_build_world()
-	_build_player()
+	world = get_node("World") as Node2D
+	player = world.get_node("Player") as CharacterBody2D
+	actor_frames = _create_actor_frames()
+	player_sprite = player.get_node("AnimatedSprite2D") as AnimatedSprite2D
+	player_sprite.sprite_frames = actor_frames
+	player_sprite.play("idle_down")
+	player_sprite.visible = true
+	var player_preview := player.get_node("EditorPreview") as Sprite2D
+	player_preview.visible = false
+
+	for crop_node in get_tree().get_nodes_in_group("forage_crop"):
+		forage_spots.append({"node": crop_node})
+	_load_scene_npcs()
+
 	_build_hud()
 	_update_api_status()
+	_update_quest_tracker()
+	_build_title_screen()
 	_update_interaction_prompt()
-	queue_redraw()
 
 
-# -----------------------------------------------------------------------------
-# World and scenery
-# -----------------------------------------------------------------------------
-
-func _draw() -> void:
-	# The base meadow and hand-painted town paths.
-	draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), COLOR_GRASS)
-	draw_rect(Rect2(Vector2.ZERO, WORLD_SIZE), Color("#3E714B"), false, 8.0)
-
-	# Large grass tiles add the texture from the supplied tileset without making
-	# the playable paths noisy.
-	for patch_position in [Vector2(30, 68), Vector2(860, 70), Vector2(42, 590), Vector2(840, 590)]:
-		draw_texture_rect(TILESET_TEXTURE, Rect2(patch_position, Vector2(192, 64)), false, Color(1, 1, 1, 0.7))
-
-	# Main east-west lane, north lane, and the town square.
-	draw_rect(Rect2(0, 332, WORLD_SIZE.x, 100), COLOR_PATH_EDGE)
-	draw_rect(Rect2(0, 340, WORLD_SIZE.x, 84), COLOR_PATH)
-	draw_rect(Rect2(530, 0, 92, WORLD_SIZE.y), COLOR_PATH_EDGE)
-	draw_rect(Rect2(538, 0, 76, WORLD_SIZE.y), COLOR_PATH)
-	draw_rect(Rect2(454, 292, 244, 176), COLOR_PATH_EDGE)
-	draw_rect(Rect2(462, 300, 228, 160), Color("#D1A676"))
-	# Subtle path seams make the town readable while keeping the pixel-art style.
-	for x in range(16, 1152, 64):
-		draw_line(Vector2(x, 340), Vector2(x + 26, 340), Color("#DDBB8B"), 2.0)
-	for y in range(20, 720, 64):
-		draw_line(Vector2(538, y), Vector2(538, y + 24), Color("#DDBB8B"), 2.0)
-
-	# A little pond makes the south-east corner feel like a destination.
-	draw_circle(Vector2(934, 489), 62, Color("#397C86"))
-	draw_circle(Vector2(934, 483), 56, COLOR_WATER)
-	draw_arc(Vector2(934, 483), 42, 0.25, 2.2, 18, Color("#7CC3C0"), 2.0)
-	draw_arc(Vector2(934, 483), 28, 3.2, 5.5, 18, Color("#3B8998"), 2.0)
-
-	# Soil beds for the crop patch.
-	draw_rect(Rect2(125, 454, 270, 120), Color("#79543E"))
-	for y in range(468, 568, 25):
-		draw_line(Vector2(137, y), Vector2(383, y), Color("#9A6A4A"), 2.0)
-
-
-func _build_world() -> void:
-	_add_world_boundaries()
-	_add_circle_collision(Vector2(934, 483), 57.0)
-
-	# Two cozy houses are extracted from the supplied house sprite sheet.
-	_add_atlas_sprite(HOUSE_TEXTURE, Rect2(0, 0, 80, 112), Vector2(265, 174), 1.4, 175)
-	_add_atlas_sprite(HOUSE_TEXTURE, Rect2(144, 0, 80, 112), Vector2(865, 174), 1.4, 175)
-	_add_static_collision(Vector2(265, 232), Vector2(94, 22))
-	_add_static_collision(Vector2(865, 232), Vector2(94, 22))
-	_add_world_label("MEADOW HOUSE", Vector2(213, 247), COLOR_TEXT, 11)
-	_add_world_label("SUNLIT INN", Vector2(823, 247), COLOR_TEXT, 11)
-
-	# Maple trees frame the village and use several variations from the sheet.
-	var tree_locations := [
-		[Vector2(92, 150), 0], [Vector2(1100, 145), 2], [Vector2(94, 596), 3],
-		[Vector2(1060, 620), 1], [Vector2(420, 112), 4], [Vector2(746, 112), 2],
-		[Vector2(405, 650), 1], [Vector2(770, 646), 3]
-	]
-	for tree_info in tree_locations:
-		var tree_position: Vector2 = tree_info[0]
-		var tree_variant: int = tree_info[1]
-		_add_atlas_sprite(TREE_TEXTURE, Rect2(tree_variant * 32, 0, 32, 48), tree_position, 1.5, int(tree_position.y))
-		_add_static_collision(tree_position + Vector2(0, 18), Vector2(18, 12))
-
-	# Cobble flecks from the road sheet help sell the main route.
-	var stone_index := 0
-	for x in range(26, 1130, 67):
-		_add_atlas_sprite(ROAD_TEXTURE, Rect2((stone_index % 5) * 16, int(stone_index / 5) % 4 * 16, 16, 16), Vector2(x, 380 + (stone_index % 3) * 18), 1.0, 2)
-		stone_index += 1
-	for y in range(40, 690, 66):
-		_add_atlas_sprite(ROAD_TEXTURE, Rect2((stone_index % 5) * 16, int(stone_index / 5) % 4 * 16, 16, 16), Vector2(572 + (stone_index % 3) * 17, y), 1.0, 2)
-		stone_index += 1
-
-	# A fenced spring garden in the lower-left corner.
-	_add_atlas_sprite(FENCE_TEXTURE, Rect2(0, 32, 48, 16), Vector2(254, 448), 1.5, 450)
-	_add_atlas_sprite(FENCE_TEXTURE, Rect2(0, 32, 48, 16), Vector2(254, 580), 1.5, 580)
-	_add_atlas_sprite(FENCE_TEXTURE, Rect2(0, 0, 16, 48), Vector2(122, 514), 1.5, 515)
-	_add_atlas_sprite(FENCE_TEXTURE, Rect2(32, 0, 16, 48), Vector2(388, 514), 1.5, 515)
-	_add_static_collision(Vector2(254, 445), Vector2(260, 10))
-	_add_static_collision(Vector2(254, 584), Vector2(260, 10))
-	for row in range(2):
-		for crop_column in range(7):
-			var crop_position := Vector2(157 + crop_column * 31, 478 + row * 39)
-			var crop_cell := (crop_column + row * 2) % 7
-			_add_atlas_sprite(CROPS_TEXTURE, Rect2(crop_cell * 16, row * 32, 16, 32), crop_position, 1.25, int(crop_position.y))
-
-	# Town props and farm animals.
-	_add_sheet_sprite(CHEST_TEXTURE, Vector2(747, 474), 1, 2, 0, 1.5, 475)
-	_add_sheet_sprite(COW_TEXTURE, Vector2(352, 517), 4, 3, 0, 1.35, 517)
-	_add_sheet_sprite(COW_TEXTURE, Vector2(1000, 558), 4, 3, 4, 1.35, 558)
-	_add_sheet_sprite(CHICKEN_TEXTURE, Vector2(420, 548), 4, 2, 1, 1.5, 548)
-	_add_sheet_sprite(CHICKEN_TEXTURE, Vector2(890, 553), 4, 2, 3, 1.5, 553)
-	_add_sheet_sprite(BABY_CHICKEN_TEXTURE, Vector2(925, 580), 4, 3, 2, 1.5, 580)
-	_add_world_label("WILLOWMERE", Vector2(507, 278), Color("#FFF0C8"), 13)
-
-	actor_frames = _create_actor_frames()
-	_build_npc({
-		"id": "mira",
-		"name": "Mira",
-		"role": "Village gardener",
-		"color": Color("#F0B6C7"),
-		"greeting": "Morning, traveler! The seedlings are finally enjoying the spring sun.",
-		"persona": "You are Mira, an optimistic village gardener. You know the crops, seasons, birds, and quiet paths around Willowmere. You are curious about the player and offer practical, kind advice."
-	}, Vector2(475, 350), 1)
-	_build_npc({
-		"id": "bram",
-		"name": "Bram",
-		"role": "Innkeeper & storyteller",
-		"color": Color("#B7D5EF"),
-		"greeting": "Welcome to Willowmere. If you have a tale to trade, you've found the right innkeeper.",
-		"persona": "You are Bram, the warm and theatrical innkeeper of Willowmere. You collect local rumors and love telling short stories, but you never reveal secrets that would harm villagers."
-	}, Vector2(692, 351), 2)
-	_build_npc({
-		"id": "juno",
-		"name": "Juno",
-		"role": "Wandering cartographer",
-		"color": Color("#D6B8F0"),
-		"greeting": "Oh! A new face. Every good map starts with a conversation—where are you headed?",
-		"persona": "You are Juno, a thoughtful wandering cartographer resting in Willowmere. You speak about exploration, landmarks, and the wider world with poetic but useful detail."
-	}, Vector2(572, 474), 3)
+func _load_scene_npcs() -> void:
+	var npc_profiles := {
+		"mira": {
+			"id": "mira", "name": "Mira", "role": "Village gardener",
+			"color": Color("#F0B6C7"),
+			"greeting": "Morning, traveler! The seedlings are finally enjoying the spring sun.",
+			"persona": "You are Mira, an optimistic village gardener. You know the crops, seasons, birds, and quiet paths around Willowmere. You are curious about the player and offer practical, kind advice."
+		},
+		"bram": {
+			"id": "bram", "name": "Bram", "role": "Innkeeper & storyteller",
+			"color": Color("#B7D5EF"),
+			"greeting": "Welcome to Willowmere. If you have a tale to trade, you've found the right innkeeper.",
+			"persona": "You are Bram, the warm and theatrical innkeeper of Willowmere. You collect local rumors and love telling short stories, but you never reveal secrets that would harm villagers."
+		},
+		"juno": {
+			"id": "juno", "name": "Juno", "role": "Wandering cartographer",
+			"color": Color("#D6B8F0"),
+			"greeting": "Oh! A new face. Every good map starts with a conversation—where are you headed?",
+			"persona": "You are Juno, a thoughtful wandering cartographer resting in Willowmere. You speak about exploration, landmarks, and the wider world with poetic but useful detail."
+		}
+	}
+	var idle_frames := {"mira": 1, "bram": 2, "juno": 3}
+	for npc_instance in get_tree().get_nodes_in_group("village_npc"):
+		var npc_node := npc_instance as Node2D
+		var npc_id := npc_node.name.trim_prefix("NPC_").to_lower()
+		if not npc_profiles.has(npc_id):
+			continue
+		var npc_data: Dictionary = npc_profiles[npc_id].duplicate()
+		npc_data["node"] = npc_node
+		npcs.append(npc_data)
+		var npc_sprite := npc_node.get_node("AnimatedSprite2D") as AnimatedSprite2D
+		npc_sprite.sprite_frames = actor_frames
+		npc_sprite.play("idle_down")
+		npc_sprite.frame = int(idle_frames[npc_id])
+		npc_sprite.visible = true
+		var npc_preview := npc_node.get_node("EditorPreview") as Sprite2D
+		npc_preview.visible = false
 
 
-func _add_world_boundaries() -> void:
-	_add_static_collision(Vector2(-10, WORLD_SIZE.y / 2.0), Vector2(20, WORLD_SIZE.y))
-	_add_static_collision(Vector2(WORLD_SIZE.x + 10, WORLD_SIZE.y / 2.0), Vector2(20, WORLD_SIZE.y))
-	_add_static_collision(Vector2(WORLD_SIZE.x / 2.0, -10), Vector2(WORLD_SIZE.x, 20))
-	_add_static_collision(Vector2(WORLD_SIZE.x / 2.0, WORLD_SIZE.y + 10), Vector2(WORLD_SIZE.x, 20))
-
-
-func _add_static_collision(position: Vector2, size: Vector2) -> StaticBody2D:
-	var body := StaticBody2D.new()
-	body.position = position
-	body.collision_layer = 1
-	body.collision_mask = 1
-	var shape_node := CollisionShape2D.new()
-	var shape := RectangleShape2D.new()
-	shape.size = size
-	shape_node.shape = shape
-	body.add_child(shape_node)
-	world.add_child(body)
-	return body
-
-
-func _add_circle_collision(position: Vector2, radius: float) -> StaticBody2D:
-	var body := StaticBody2D.new()
-	body.position = position
-	body.collision_layer = 1
-	body.collision_mask = 1
-	var shape_node := CollisionShape2D.new()
-	var shape := CircleShape2D.new()
-	shape.radius = radius
-	shape_node.shape = shape
-	body.add_child(shape_node)
-	world.add_child(body)
-	return body
-
-
-func _add_atlas_sprite(texture: Texture2D, region: Rect2, position: Vector2, scale_value: float, draw_z: int) -> Sprite2D:
-	var sprite := Sprite2D.new()
-	sprite.texture = texture
-	sprite.region_enabled = true
-	sprite.region_rect = region
-	sprite.position = position
-	sprite.scale = Vector2.ONE * scale_value
-	sprite.z_index = draw_z
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	world.add_child(sprite)
-	return sprite
-
-
-func _add_sheet_sprite(texture: Texture2D, position: Vector2, columns: int, rows: int, frame: int, scale_value: float, draw_z: int) -> Sprite2D:
-	var sprite := Sprite2D.new()
-	sprite.texture = texture
-	sprite.hframes = columns
-	sprite.vframes = rows
-	sprite.frame = frame
-	sprite.position = position
-	sprite.scale = Vector2.ONE * scale_value
-	sprite.z_index = draw_z
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	world.add_child(sprite)
-	return sprite
-
-
-func _add_world_label(text: String, position: Vector2, color: Color, font_size: int) -> void:
-	var label := Label.new()
-	label.text = text
-	label.position = position
-	label.size = Vector2(130, 22)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", font_size)
-	label.add_theme_color_override("font_color", color)
-	label.add_theme_color_override("font_outline_color", Color("#29433C"))
-	label.add_theme_constant_override("outline_size", 4)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.z_index = 900
-	world.add_child(label)
-
-
-func _build_npc(npc_data: Dictionary, position: Vector2, idle_frame: int) -> void:
-	var body := StaticBody2D.new()
-	body.name = "NPC_" + str(npc_data.get("id", "villager"))
-	body.position = position
-	body.z_index = int(position.y)
-	body.collision_layer = 1
-	body.collision_mask = 1
-	body.set_meta("npc_id", str(npc_data.get("id", "")))
-
-	var collision := CollisionShape2D.new()
-	var shape := RectangleShape2D.new()
-	shape.size = Vector2(17, 13)
-	collision.shape = shape
-	body.add_child(collision)
-
-	var sprite := AnimatedSprite2D.new()
-	sprite.sprite_frames = actor_frames
-	sprite.animation = "idle_down"
-	sprite.frame = idle_frame
-	sprite.position = Vector2(0, -15)
-	sprite.scale = Vector2(1.35, 1.35)
-	sprite.modulate = npc_data.get("color", Color.WHITE)
-	sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sprite.play()
-	body.add_child(sprite)
-
-	var name_label := Label.new()
-	name_label.text = str(npc_data.get("name", "Villager")).to_upper()
-	name_label.position = Vector2(-50, -59)
-	name_label.size = Vector2(100, 18)
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 10)
-	name_label.add_theme_color_override("font_color", npc_data.get("color", COLOR_TEXT))
-	name_label.add_theme_color_override("font_outline_color", Color("#263B3B"))
-	name_label.add_theme_constant_override("outline_size", 4)
-	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body.add_child(name_label)
-	world.add_child(body)
-
-	npc_data["node"] = body
-	npcs.append(npc_data)
-
+# Town art, collision, props, crops, villagers, and player structure are authored in World.tscn.
 
 func _create_actor_frames() -> SpriteFrames:
 	var frames := SpriteFrames.new()
@@ -350,51 +151,10 @@ func _add_direction_animations(frames: SpriteFrames, prefix: String, texture: Te
 # Player movement and interaction
 # -----------------------------------------------------------------------------
 
-func _build_player() -> void:
-	player = CharacterBody2D.new()
-	player.name = "Player"
-	player.position = Vector2(575, 430)
-	player.collision_layer = 1
-	player.collision_mask = 1
-	player.z_index = int(player.position.y)
-	world.add_child(player)
-
-	var collision := CollisionShape2D.new()
-	var capsule := CapsuleShape2D.new()
-	capsule.radius = 8.0
-	capsule.height = 18.0
-	collision.shape = capsule
-	player.add_child(collision)
-
-	player_sprite = AnimatedSprite2D.new()
-	player_sprite.sprite_frames = actor_frames
-	player_sprite.animation = "idle_down"
-	player_sprite.position = Vector2(0, -15)
-	player_sprite.scale = Vector2(1.4, 1.4)
-	player_sprite.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	player_sprite.play()
-	player.add_child(player_sprite)
-
-	var camera := Camera2D.new()
-	camera.name = "TownCamera"
-	camera.position = Vector2(0, -85)
-	camera.zoom = Vector2(1.45, 1.45)
-	camera.position_smoothing_enabled = true
-	camera.position_smoothing_speed = 6.0
-	camera.limit_left = 0
-	camera.limit_top = 0
-	camera.limit_right = int(WORLD_SIZE.x)
-	camera.limit_bottom = int(WORLD_SIZE.y)
-	camera.drag_horizontal_enabled = false
-	camera.drag_vertical_enabled = false
-	player.add_child(camera)
-	camera.enabled = true
-
-
 func _physics_process(_delta: float) -> void:
 	if not is_instance_valid(player):
 		return
-	if dialogue_open or is_instance_valid(settings_overlay):
+	if not game_started or dialogue_open or is_instance_valid(settings_overlay):
 		player.velocity = Vector2.ZERO
 		_update_player_animation(Vector2.ZERO)
 		return
@@ -442,7 +202,7 @@ func _update_player_animation(move_input: Vector2) -> void:
 
 
 func _process(_delta: float) -> void:
-	if not dialogue_open and not is_instance_valid(settings_overlay):
+	if game_started and not dialogue_open and not is_instance_valid(settings_overlay):
 		_update_interaction_prompt()
 	if is_instance_valid(player):
 		player.z_index = int(player.position.y)
@@ -456,10 +216,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			elif dialogue_open:
 				_close_dialogue()
 			return
+		if not game_started:
+			if not is_instance_valid(settings_overlay) and (event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER or event.keycode == KEY_SPACE):
+				_start_game()
+			return
 		if not dialogue_open and not is_instance_valid(settings_overlay) and event.keycode == KEY_E:
 			var nearby := _nearest_npc()
 			if not nearby.is_empty():
 				_open_dialogue(nearby)
+			else:
+				var crop := _nearest_forage()
+				if not crop.is_empty():
+					_harvest_crop(crop)
 
 
 func _nearest_npc() -> Dictionary:
@@ -478,15 +246,49 @@ func _nearest_npc() -> Dictionary:
 	return closest
 
 
+func _nearest_forage() -> Dictionary:
+	var closest: Dictionary = {}
+	var closest_distance := 52.0
+	if not is_instance_valid(player) or crops_collected >= QUEST_CROP_TARGET:
+		return closest
+	for crop in forage_spots:
+		var crop_instance: Variant = crop.get("node")
+		if not is_instance_valid(crop_instance):
+			continue
+		var crop_node := crop_instance as Node2D
+		var distance := player.position.distance_to(crop_node.position)
+		if distance <= closest_distance:
+			closest_distance = distance
+			closest = crop
+	return closest
+
+
+func _harvest_crop(crop: Dictionary) -> void:
+	var crop_instance: Variant = crop.get("node")
+	if not is_instance_valid(crop_instance) or crops_collected >= QUEST_CROP_TARGET:
+		return
+	var crop_node := crop_instance as Node2D
+	forage_spots.erase(crop)
+	crop_node.queue_free()
+	crops_collected += 1
+	_update_quest_tracker()
+	_update_interaction_prompt()
+
+
 func _update_interaction_prompt() -> void:
 	if not is_instance_valid(interaction_panel):
 		return
 	var nearby := _nearest_npc()
-	if nearby.is_empty():
-		interaction_panel.visible = false
-	else:
+	if not nearby.is_empty():
 		interaction_panel.visible = true
 		interaction_label.text = "E   TALK TO " + str(nearby.get("name", "VILLAGER")).to_upper()
+		return
+	var crop := _nearest_forage()
+	if not crop.is_empty():
+		interaction_panel.visible = true
+		interaction_label.text = "E   HARVEST SPRING CROP"
+	else:
+		interaction_panel.visible = false
 
 
 # -----------------------------------------------------------------------------
@@ -494,13 +296,9 @@ func _update_interaction_prompt() -> void:
 # -----------------------------------------------------------------------------
 
 func _build_hud() -> void:
-	var hud_layer := CanvasLayer.new()
-	hud_layer.name = "HUD"
-	add_child(hud_layer)
-	hud = Control.new()
+	hud = get_node("HUDLayer/HUD") as Control
 	_full_rect(hud)
 	hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_layer.add_child(hud)
 
 	var top_card := PanelContainer.new()
 	top_card.position = Vector2(20, 18)
@@ -523,10 +321,31 @@ func _build_hud() -> void:
 	location_subtitle.add_theme_color_override("font_color", COLOR_ACCENT)
 	top_copy.add_child(location_subtitle)
 	var controls := Label.new()
-	controls.text = "WASD / ARROWS  MOVE     E  TALK"
+	controls.text = "WASD / ARROWS  MOVE     E  INTERACT"
 	controls.add_theme_font_size_override("font_size", 9)
 	controls.add_theme_color_override("font_color", COLOR_FAINT)
 	top_copy.add_child(controls)
+
+	var quest_card := PanelContainer.new()
+	quest_card.position = Vector2(20, 112)
+	quest_card.size = Vector2(310, 94)
+	quest_card.add_theme_stylebox_override("panel", _panel_style(Color("#142336"), 13, COLOR_BORDER, 1))
+	hud.add_child(quest_card)
+	var quest_margin := _margin(14, 14, 10, 10)
+	quest_card.add_child(quest_margin)
+	var quest_copy := VBoxContainer.new()
+	quest_copy.add_theme_constant_override("separation", 4)
+	quest_margin.add_child(quest_copy)
+	quest_title_label = Label.new()
+	quest_title_label.text = "MIRA'S GARDEN REQUEST"
+	quest_title_label.add_theme_font_size_override("font_size", 10)
+	quest_title_label.add_theme_color_override("font_color", COLOR_ACCENT)
+	quest_copy.add_child(quest_title_label)
+	quest_detail_label = Label.new()
+	quest_detail_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	quest_detail_label.add_theme_font_size_override("font_size", 11)
+	quest_detail_label.add_theme_color_override("font_color", COLOR_TEXT)
+	quest_copy.add_child(quest_detail_label)
 
 	var status_card := PanelContainer.new()
 	status_card.anchor_left = 1.0
@@ -583,6 +402,121 @@ func _build_hud() -> void:
 	interaction_panel.visible = false
 
 	_build_dialogue_panel()
+
+
+func _update_quest_tracker() -> void:
+	if not is_instance_valid(quest_detail_label):
+		return
+	if quest_completed:
+		quest_title_label.text = "MIRA'S GARDEN  /  COMPLETE"
+		quest_detail_label.text = "Garden restored! Mira gave you the Garden Star."
+	else:
+		quest_title_label.text = "MIRA'S GARDEN REQUEST"
+		quest_detail_label.text = "%d / %d spring crops\nPick them in the garden, then return to Mira." % [crops_collected, QUEST_CROP_TARGET]
+
+
+func _build_title_screen() -> void:
+	title_overlay = Control.new()
+	_full_rect(title_overlay)
+	title_overlay.z_index = 20
+	title_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+	hud.add_child(title_overlay)
+
+	var shade := ColorRect.new()
+	_full_rect(shade)
+	shade.color = Color(0.035, 0.075, 0.09, 0.82)
+	shade.mouse_filter = Control.MOUSE_FILTER_STOP
+	title_overlay.add_child(shade)
+
+	var card := PanelContainer.new()
+	card.anchor_left = 0.5
+	card.anchor_top = 0.5
+	card.anchor_right = 0.5
+	card.anchor_bottom = 0.5
+	card.offset_left = -350
+	card.offset_top = -260
+	card.offset_right = 350
+	card.offset_bottom = 260
+	card.add_theme_stylebox_override("panel", _panel_style(Color("#142336"), 22, Color("#789185"), 2))
+	title_overlay.add_child(card)
+	var margin := _margin(42, 42, 34, 30)
+	card.add_child(margin)
+	var content := VBoxContainer.new()
+	content.add_theme_constant_override("separation", 12)
+	margin.add_child(content)
+
+	var eyebrow := Label.new()
+	eyebrow.text = "A QUIET LITTLE VILLAGE  ·  SPRINGFALL"
+	eyebrow.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	eyebrow.add_theme_font_size_override("font_size", 11)
+	eyebrow.add_theme_color_override("font_color", COLOR_ACCENT)
+	content.add_child(eyebrow)
+	var title := Label.new()
+	title.text = "Willowmere"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_size_override("font_size", 48)
+	title.add_theme_color_override("font_color", COLOR_TEXT)
+	content.add_child(title)
+	var subtitle := Label.new()
+	subtitle.text = "A small springtime adventure"
+	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	subtitle.add_theme_font_size_override("font_size", 17)
+	subtitle.add_theme_color_override("font_color", COLOR_MINT)
+	content.add_child(subtitle)
+
+	var divider := ColorRect.new()
+	divider.custom_minimum_size = Vector2(0, 1)
+	divider.color = COLOR_BORDER
+	content.add_child(divider)
+	var description := Label.new()
+	description.text = "Meet the townsfolk, gather spring crops, and help Mira bring her garden back to life."
+	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.custom_minimum_size = Vector2(0, 48)
+	description.add_theme_font_size_override("font_size", 14)
+	description.add_theme_color_override("font_color", COLOR_MUTED)
+	content.add_child(description)
+	var objective := Label.new()
+	objective.text = "YOUR FIRST ERRAND   ·   COLLECT 5 CROPS FOR MIRA"
+	objective.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	objective.add_theme_font_size_override("font_size", 11)
+	objective.add_theme_color_override("font_color", COLOR_ACCENT)
+	content.add_child(objective)
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(spacer)
+
+	var actions := HBoxContainer.new()
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.add_theme_constant_override("separation", 12)
+	content.add_child(actions)
+	var start_button := Button.new()
+	start_button.text = "Begin exploring"
+	start_button.custom_minimum_size = Vector2(190, 48)
+	start_button.add_theme_font_size_override("font_size", 14)
+	_apply_button_style(start_button, Color("#337C75"), Color("#4D9E91"), Color("#28655F"))
+	start_button.add_theme_color_override("font_color", Color.WHITE)
+	start_button.pressed.connect(_start_game)
+	actions.add_child(start_button)
+	var settings_button := _ghost_button("Gemini settings")
+	settings_button.custom_minimum_size = Vector2(150, 48)
+	settings_button.pressed.connect(_show_settings)
+	actions.add_child(settings_button)
+
+	var controls := Label.new()
+	controls.text = "ENTER  BEGIN     ·     WASD / ARROWS  MOVE     ·     E  INTERACT"
+	controls.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	controls.add_theme_font_size_override("font_size", 10)
+	controls.add_theme_color_override("font_color", COLOR_FAINT)
+	content.add_child(controls)
+
+
+func _start_game() -> void:
+	game_started = true
+	if is_instance_valid(title_overlay):
+		title_overlay.queue_free()
+	title_overlay = null
+	_update_interaction_prompt()
 
 
 func _build_dialogue_panel() -> void:
@@ -701,6 +635,15 @@ func _open_dialogue(npc: Dictionary) -> void:
 		child.free()
 	dialogue_history.clear()
 	var greeting := str(npc.get("greeting", "Hello there."))
+	if str(npc.get("id", "")) == "mira":
+		if quest_completed:
+			greeting = "The garden is flourishing again, thanks to you. Please take this little Garden Star—I pressed it from my favorite spring flower."
+		elif crops_collected >= QUEST_CROP_TARGET:
+			quest_completed = true
+			_update_quest_tracker()
+			greeting = "You gathered every crop! The garden will be thriving by sundown. Here, take this Garden Star as a thank-you."
+		else:
+			greeting = "Could you lend me a hand with the spring garden? Gather five spring crops from the beds nearby and bring them back to me. You've found %d so far." % crops_collected
 	dialogue_history.append({"role": "model", "text": greeting})
 	_add_dialogue_line(str(npc.get("name", "Villager")), greeting, false, false)
 	dialogue_input.clear()
@@ -936,7 +879,7 @@ func _scroll_dialogue_to_bottom() -> void:
 
 func _has_api_key() -> bool:
 	var candidate := api_key.strip_edges()
-	if candidate.is_empty():
+	if candidate.is_empty() or candidate == "GEMINI_API_HERE":
 		return false
 	if candidate.begins_with("PASTE_YOUR_") or candidate.begins_with("YOUR_"):
 		return false

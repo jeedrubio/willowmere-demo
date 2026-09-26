@@ -1,9 +1,23 @@
 [gd_scene format=3 uid="uid://if6jryi574nr"]
 
 [ext_resource type="Script" uid="uid://xk2mswdjke2e" path="res://Main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://World.tscn" id="2_world"]
 
 [node name="WillowmereRPG" type="Node2D" unique_id=1328301884]
 script = ExtResource("1_main")
+
+[node name="World" parent="." unique_id=57406381 instance=ExtResource("2_world")]
+
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=475017797]
+
+[node name="HUD" type="Control" parent="HUDLayer" unique_id=252218307]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="GeminiRequest" type="HTTPRequest" parent="." unique_id=149833412]
 timeout = 45.0

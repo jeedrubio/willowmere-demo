@@ -1,0 +1,1192 @@
+[gd_scene load_steps=20 format=3]
+[ext_resource type="Texture2D" path="res://asset_pack/Tileset/Tileset Grass Spring.png" id="tiles"]
+[ext_resource type="Texture2D" path="res://asset_pack/Objects/House.png" id="house"]
+[ext_resource type="Texture2D" path="res://asset_pack/Objects/Maple Tree.png" id="tree"]
+[ext_resource type="Texture2D" path="res://asset_pack/Objects/Road copiar.png" id="road"]
+[ext_resource type="Texture2D" path="res://asset_pack/Objects/Fence's copiar.png" id="fence"]
+[ext_resource type="Texture2D" path="res://asset_pack/Objects/Spring Crops.png" id="crops"]
+[ext_resource type="Texture2D" path="res://asset_pack/Objects/chest.png" id="chest"]
+[ext_resource type="Texture2D" path="res://asset_pack/Farm Animals/Female Cow Brown.png" id="cow"]
+[ext_resource type="Texture2D" path="res://asset_pack/Farm Animals/Chicken Red.png" id="chicken"]
+[ext_resource type="Texture2D" path="res://asset_pack/Farm Animals/Baby Chicken Yellow.png" id="baby_chicken"]
+[ext_resource type="Texture2D" path="res://asset_pack/Character/Idle.png" id="idle"]
+[sub_resource type="RectangleShape2D" id="BoundaryHorizontal"]
+size = Vector2(20, 720)
+[sub_resource type="RectangleShape2D" id="BoundaryVertical"]
+size = Vector2(1152, 20)
+[sub_resource type="RectangleShape2D" id="HouseCollision"]
+size = Vector2(94, 22)
+[sub_resource type="RectangleShape2D" id="TreeCollision"]
+size = Vector2(18, 12)
+[sub_resource type="RectangleShape2D" id="FenceCollision"]
+size = Vector2(260, 10)
+[sub_resource type="RectangleShape2D" id="NpcCollision"]
+size = Vector2(17, 13)
+[sub_resource type="CircleShape2D" id="PondCollision"]
+radius = 57.0
+[sub_resource type="CapsuleShape2D" id="PlayerCollision"]
+radius = 8.0
+height = 18.0
+
+[node name="World" type="Node2D"]
+texture_filter = 1
+
+[node name="Backdrop" type="Node2D" parent="."]
+z_index = -50
+[node name="Grass" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(0, 0, 1152, 0, 1152, 720, 0, 720)
+color = Color(0.447059, 0.721569, 0.360784, 1.000000)
+z_index = -50
+
+[node name="MeadowBorder" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(4, 4, 1148, 4, 1148, 716, 4, 716)
+width = 8.0
+default_color = Color(0.243137, 0.443137, 0.294118, 1.000000)
+z_index = -49
+closed = true
+
+[node name="GrassTexture1" type="Sprite2D" parent="Backdrop"]
+texture = ExtResource("tiles")
+position = Vector2(126, 100)
+modulate = Color(1, 1, 1, 0.7)
+texture_filter = 1
+
+[node name="GrassTexture2" type="Sprite2D" parent="Backdrop"]
+texture = ExtResource("tiles")
+position = Vector2(956, 102)
+modulate = Color(1, 1, 1, 0.7)
+texture_filter = 1
+
+[node name="GrassTexture3" type="Sprite2D" parent="Backdrop"]
+texture = ExtResource("tiles")
+position = Vector2(138, 622)
+modulate = Color(1, 1, 1, 0.7)
+texture_filter = 1
+
+[node name="GrassTexture4" type="Sprite2D" parent="Backdrop"]
+texture = ExtResource("tiles")
+position = Vector2(936, 622)
+modulate = Color(1, 1, 1, 0.7)
+texture_filter = 1
+
+[node name="EastWestPathEdge" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(0, 332, 1152, 332, 1152, 432, 0, 432)
+color = Color(0.650980, 0.470588, 0.345098, 1.000000)
+z_index = -40
+
+[node name="EastWestPath" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(0, 340, 1152, 340, 1152, 424, 0, 424)
+color = Color(0.776471, 0.603922, 0.419608, 1.000000)
+z_index = -39
+
+[node name="NorthSouthPathEdge" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(530, 0, 622, 0, 622, 720, 530, 720)
+color = Color(0.650980, 0.470588, 0.345098, 1.000000)
+z_index = -40
+
+[node name="NorthSouthPath" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(538, 0, 614, 0, 614, 720, 538, 720)
+color = Color(0.776471, 0.603922, 0.419608, 1.000000)
+z_index = -39
+
+[node name="TownSquareEdge" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(454, 292, 698, 292, 698, 468, 454, 468)
+color = Color(0.650980, 0.470588, 0.345098, 1.000000)
+z_index = -38
+
+[node name="TownSquare" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(462, 300, 690, 300, 690, 460, 462, 460)
+color = Color(0.819608, 0.650980, 0.462745, 1.000000)
+z_index = -37
+
+[node name="HorizontalPathSeam00" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(16, 340, 42, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam01" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(80, 340, 106, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam02" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(144, 340, 170, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam03" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(208, 340, 234, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam04" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(272, 340, 298, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam05" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(336, 340, 362, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam06" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(400, 340, 426, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam07" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(464, 340, 490, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam08" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(528, 340, 554, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam09" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(592, 340, 618, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam10" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(656, 340, 682, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam11" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(720, 340, 746, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam12" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(784, 340, 810, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam13" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(848, 340, 874, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam14" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(912, 340, 938, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam15" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(976, 340, 1002, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam16" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(1040, 340, 1066, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="HorizontalPathSeam17" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(1104, 340, 1130, 340)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam00" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 20, 538, 44)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam01" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 84, 538, 108)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam02" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 148, 538, 172)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam03" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 212, 538, 236)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam04" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 276, 538, 300)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam05" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 340, 538, 364)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam06" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 404, 538, 428)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam07" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 468, 538, 492)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam08" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 532, 538, 556)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam09" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 596, 538, 620)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="VerticalPathSeam10" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(538, 660, 538, 684)
+width = 2
+default_color = Color(0.866667, 0.733333, 0.545098, 1.000000)
+z_index = -36
+
+[node name="PondShadow" type="Polygon2D" parent="Backdrop"]
+position = Vector2(934, 489)
+polygon = PackedVector2Array(62.0, 0.0, 61.237, 9.699, 58.966, 19.159, 55.242, 28.147, 50.159, 36.443, 43.841, 43.841, 36.443, 50.159, 28.147, 55.242, 19.159, 58.966, 9.699, 61.237, 0.0, 62.0, -9.699, 61.237, -19.159, 58.966, -28.147, 55.242, -36.443, 50.159, -43.841, 43.841, -50.159, 36.443, -55.242, 28.147, -58.966, 19.159, -61.237, 9.699, -62.0, 0.0, -61.237, -9.699, -58.966, -19.159, -55.242, -28.147, -50.159, -36.443, -43.841, -43.841, -36.443, -50.159, -28.147, -55.242, -19.159, -58.966, -9.699, -61.237, -0.0, -62.0, 9.699, -61.237, 19.159, -58.966, 28.147, -55.242, 36.443, -50.159, 43.841, -43.841, 50.159, -36.443, 55.242, -28.147, 58.966, -19.159, 61.237, -9.699)
+color = Color(0.223529, 0.486275, 0.525490, 1.000000)
+z_index = -30
+
+[node name="PondWater" type="Polygon2D" parent="Backdrop"]
+position = Vector2(934, 483)
+polygon = PackedVector2Array(56.0, 0.0, 55.311, 8.76, 53.259, 17.305, 49.896, 25.423, 45.305, 32.916, 39.598, 39.598, 32.916, 45.305, 25.423, 49.896, 17.305, 53.259, 8.76, 55.311, 0.0, 56.0, -8.76, 55.311, -17.305, 53.259, -25.423, 49.896, -32.916, 45.305, -39.598, 39.598, -45.305, 32.916, -49.896, 25.423, -53.259, 17.305, -55.311, 8.76, -56.0, 0.0, -55.311, -8.76, -53.259, -17.305, -49.896, -25.423, -45.305, -32.916, -39.598, -39.598, -32.916, -45.305, -25.423, -49.896, -17.305, -53.259, -8.76, -55.311, -0.0, -56.0, 8.76, -55.311, 17.305, -53.259, 25.423, -49.896, 32.916, -45.305, 39.598, -39.598, 45.305, -32.916, 49.896, -25.423, 53.259, -17.305, 55.311, -8.76)
+color = Color(0.298039, 0.619608, 0.686275, 1.000000)
+z_index = -29
+
+[node name="PondRipple1" type="Line2D" parent="Backdrop"]
+position = Vector2(934, 483)
+points = PackedVector2Array(40.694, 10.391, 39.332, 14.73, 37.509, 18.896, 35.246, 22.841, 32.57, 26.518, 29.512, 29.884, 26.108, 32.9, 22.397, 35.53, 18.425, 37.743, 14.236, 39.514, 9.88, 40.821, 5.408, 41.65, 0.873, 41.991, -3.672, 41.839, -8.174, 41.197, -12.58, 40.072, -16.839, 38.476, -20.901, 36.43, -24.717, 33.957)
+width = 2
+default_color = Color(0.486275, 0.764706, 0.752941, 1.000000)
+z_index = -28
+
+[node name="PondRipple2" type="Line2D" parent="Backdrop"]
+position = Vector2(934, 483)
+points = PackedVector2Array(-27.952, -1.634, -27.516, -5.183, -26.631, -8.647, -25.312, -11.97, -23.581, -15.098, -21.464, -17.98, -18.998, -20.569, -16.222, -22.822, -13.182, -24.703, -9.926, -26.181, -6.509, -27.233, -2.986, -27.84, 0.586, -27.994, 4.149, -27.691, 7.644, -26.936, 11.014, -25.743, 14.205, -24.129, 17.164, -22.123, 19.843, -19.755)
+width = 2
+default_color = Color(0.231373, 0.537255, 0.596078, 1.000000)
+z_index = -28
+
+[node name="GardenSoil" type="Polygon2D" parent="Backdrop"]
+polygon = PackedVector2Array(125, 454, 395, 454, 395, 574, 125, 574)
+color = Color(0.474510, 0.329412, 0.243137, 1.000000)
+z_index = -20
+
+[node name="SoilFurrow1" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(137, 468, 383, 468)
+width = 2
+default_color = Color(0.603922, 0.415686, 0.290196, 1.000000)
+z_index = -19
+
+[node name="SoilFurrow2" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(137, 493, 383, 493)
+width = 2
+default_color = Color(0.603922, 0.415686, 0.290196, 1.000000)
+z_index = -19
+
+[node name="SoilFurrow3" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(137, 518, 383, 518)
+width = 2
+default_color = Color(0.603922, 0.415686, 0.290196, 1.000000)
+z_index = -19
+
+[node name="SoilFurrow4" type="Line2D" parent="Backdrop"]
+points = PackedVector2Array(137, 543, 383, 543)
+width = 2
+default_color = Color(0.603922, 0.415686, 0.290196, 1.000000)
+z_index = -19
+
+[node name="BoundaryLeft" type="StaticBody2D" parent="."]
+position = Vector2(-10, 360)
+z_index = 0
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BoundaryLeft"]
+shape = SubResource("BoundaryHorizontal")
+
+[node name="BoundaryRight" type="StaticBody2D" parent="."]
+position = Vector2(1162, 360)
+z_index = 0
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BoundaryRight"]
+shape = SubResource("BoundaryHorizontal")
+
+[node name="BoundaryTop" type="StaticBody2D" parent="."]
+position = Vector2(576, -10)
+z_index = 0
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BoundaryTop"]
+shape = SubResource("BoundaryVertical")
+
+[node name="BoundaryBottom" type="StaticBody2D" parent="."]
+position = Vector2(576, 730)
+z_index = 0
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="BoundaryBottom"]
+shape = SubResource("BoundaryVertical")
+
+[node name="PondCollision" type="StaticBody2D" parent="."]
+position = Vector2(934, 483)
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="PondCollision"]
+shape = SubResource("PondCollision")
+
+[node name="MeadowHouse" type="Sprite2D" parent="."]
+texture = ExtResource("house")
+region_enabled = true
+region_rect = Rect2(0, 0, 80, 112)
+position = Vector2(265, 174)
+scale = Vector2(1.4, 1.4)
+z_index = 175
+texture_filter = 1
+
+[node name="SunlitInn" type="Sprite2D" parent="."]
+texture = ExtResource("house")
+region_enabled = true
+region_rect = Rect2(144, 0, 80, 112)
+position = Vector2(865, 174)
+scale = Vector2(1.4, 1.4)
+z_index = 175
+texture_filter = 1
+
+[node name="MeadowHouseCollision" type="StaticBody2D" parent="."]
+position = Vector2(265, 232)
+z_index = 0
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MeadowHouseCollision"]
+shape = SubResource("HouseCollision")
+
+[node name="SunlitInnCollision" type="StaticBody2D" parent="."]
+position = Vector2(865, 232)
+z_index = 0
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SunlitInnCollision"]
+shape = SubResource("HouseCollision")
+
+[node name="MeadowHouseLabel" type="Label" parent="."]
+text = "MEADOW HOUSE"
+position = Vector2(213, 247)
+size = Vector2(130, 22)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.964706, 0.941176, 0.858824, 1.000000)
+theme_override_colors/font_outline_color = Color(0.160784, 0.262745, 0.235294, 1.000000)
+theme_override_constants/outline_size = 4
+mouse_filter = 2
+z_index = 900
+
+[node name="SunlitInnLabel" type="Label" parent="."]
+text = "SUNLIT INN"
+position = Vector2(823, 247)
+size = Vector2(130, 22)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.964706, 0.941176, 0.858824, 1.000000)
+theme_override_colors/font_outline_color = Color(0.160784, 0.262745, 0.235294, 1.000000)
+theme_override_constants/outline_size = 4
+mouse_filter = 2
+z_index = 900
+
+[node name="MapleTree1" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(0, 0, 32, 48)
+position = Vector2(92, 150)
+scale = Vector2(1.5, 1.5)
+z_index = 150
+texture_filter = 1
+
+[node name="MapleTreeCollision1" type="StaticBody2D" parent="."]
+position = Vector2(92, 168)
+z_index = 150
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision1"]
+shape = SubResource("TreeCollision")
+
+[node name="MapleTree2" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(64, 0, 32, 48)
+position = Vector2(1100, 145)
+scale = Vector2(1.5, 1.5)
+z_index = 145
+texture_filter = 1
+
+[node name="MapleTreeCollision2" type="StaticBody2D" parent="."]
+position = Vector2(1100, 163)
+z_index = 145
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision2"]
+shape = SubResource("TreeCollision")
+
+[node name="MapleTree3" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(96, 0, 32, 48)
+position = Vector2(94, 596)
+scale = Vector2(1.5, 1.5)
+z_index = 596
+texture_filter = 1
+
+[node name="MapleTreeCollision3" type="StaticBody2D" parent="."]
+position = Vector2(94, 614)
+z_index = 596
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision3"]
+shape = SubResource("TreeCollision")
+
+[node name="MapleTree4" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(32, 0, 32, 48)
+position = Vector2(1060, 620)
+scale = Vector2(1.5, 1.5)
+z_index = 620
+texture_filter = 1
+
+[node name="MapleTreeCollision4" type="StaticBody2D" parent="."]
+position = Vector2(1060, 638)
+z_index = 620
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision4"]
+shape = SubResource("TreeCollision")
+
+[node name="MapleTree5" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(128, 0, 32, 48)
+position = Vector2(420, 112)
+scale = Vector2(1.5, 1.5)
+z_index = 112
+texture_filter = 1
+
+[node name="MapleTreeCollision5" type="StaticBody2D" parent="."]
+position = Vector2(420, 130)
+z_index = 112
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision5"]
+shape = SubResource("TreeCollision")
+
+[node name="MapleTree6" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(64, 0, 32, 48)
+position = Vector2(746, 112)
+scale = Vector2(1.5, 1.5)
+z_index = 112
+texture_filter = 1
+
+[node name="MapleTreeCollision6" type="StaticBody2D" parent="."]
+position = Vector2(746, 130)
+z_index = 112
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision6"]
+shape = SubResource("TreeCollision")
+
+[node name="MapleTree7" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(32, 0, 32, 48)
+position = Vector2(405, 650)
+scale = Vector2(1.5, 1.5)
+z_index = 650
+texture_filter = 1
+
+[node name="MapleTreeCollision7" type="StaticBody2D" parent="."]
+position = Vector2(405, 668)
+z_index = 650
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision7"]
+shape = SubResource("TreeCollision")
+
+[node name="MapleTree8" type="Sprite2D" parent="."]
+texture = ExtResource("tree")
+region_enabled = true
+region_rect = Rect2(96, 0, 32, 48)
+position = Vector2(770, 646)
+scale = Vector2(1.5, 1.5)
+z_index = 646
+texture_filter = 1
+
+[node name="MapleTreeCollision8" type="StaticBody2D" parent="."]
+position = Vector2(770, 664)
+z_index = 646
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="MapleTreeCollision8"]
+shape = SubResource("TreeCollision")
+
+[node name="RoadStone00" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 16)
+position = Vector2(26, 380)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone01" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(16, 0, 16, 16)
+position = Vector2(93, 398)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone02" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(32, 0, 16, 16)
+position = Vector2(160, 416)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone03" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(48, 0, 16, 16)
+position = Vector2(227, 380)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone04" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(64, 0, 16, 16)
+position = Vector2(294, 398)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone05" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(0, 16, 16, 16)
+position = Vector2(361, 416)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone06" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(16, 16, 16, 16)
+position = Vector2(428, 380)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone07" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(32, 16, 16, 16)
+position = Vector2(495, 398)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone08" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(48, 16, 16, 16)
+position = Vector2(562, 416)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone09" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(64, 16, 16, 16)
+position = Vector2(629, 380)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone10" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(0, 32, 16, 16)
+position = Vector2(696, 398)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone11" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(16, 32, 16, 16)
+position = Vector2(763, 416)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone12" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(32, 32, 16, 16)
+position = Vector2(830, 380)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone13" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(48, 32, 16, 16)
+position = Vector2(897, 398)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone14" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(64, 32, 16, 16)
+position = Vector2(964, 416)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone15" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(0, 48, 16, 16)
+position = Vector2(1031, 380)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone16" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(16, 48, 16, 16)
+position = Vector2(1098, 398)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone17" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(32, 48, 16, 16)
+position = Vector2(606, 40)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone18" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(48, 48, 16, 16)
+position = Vector2(572, 106)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone19" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(64, 48, 16, 16)
+position = Vector2(589, 172)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone20" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 16)
+position = Vector2(606, 238)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone21" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(16, 0, 16, 16)
+position = Vector2(572, 304)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone22" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(32, 0, 16, 16)
+position = Vector2(589, 370)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone23" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(48, 0, 16, 16)
+position = Vector2(606, 436)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone24" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(64, 0, 16, 16)
+position = Vector2(572, 502)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone25" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(0, 16, 16, 16)
+position = Vector2(589, 568)
+z_index = 2
+texture_filter = 1
+
+[node name="RoadStone26" type="Sprite2D" parent="."]
+texture = ExtResource("road")
+region_enabled = true
+region_rect = Rect2(16, 16, 16, 16)
+position = Vector2(606, 634)
+z_index = 2
+texture_filter = 1
+
+[node name="GardenFenceNorth" type="Sprite2D" parent="."]
+texture = ExtResource("fence")
+region_enabled = true
+region_rect = Rect2(0, 32, 48, 16)
+position = Vector2(254, 448)
+scale = Vector2(1.5, 1.5)
+z_index = 450
+texture_filter = 1
+
+[node name="GardenFenceSouth" type="Sprite2D" parent="."]
+texture = ExtResource("fence")
+region_enabled = true
+region_rect = Rect2(0, 32, 48, 16)
+position = Vector2(254, 580)
+scale = Vector2(1.5, 1.5)
+z_index = 580
+texture_filter = 1
+
+[node name="GardenFenceWest" type="Sprite2D" parent="."]
+texture = ExtResource("fence")
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 48)
+position = Vector2(122, 514)
+scale = Vector2(1.5, 1.5)
+z_index = 515
+texture_filter = 1
+
+[node name="GardenFenceEast" type="Sprite2D" parent="."]
+texture = ExtResource("fence")
+region_enabled = true
+region_rect = Rect2(32, 0, 16, 48)
+position = Vector2(388, 514)
+scale = Vector2(1.5, 1.5)
+z_index = 515
+texture_filter = 1
+
+[node name="GardenNorthCollision" type="StaticBody2D" parent="."]
+position = Vector2(254, 445)
+z_index = 450
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GardenNorthCollision"]
+shape = SubResource("FenceCollision")
+
+[node name="GardenSouthCollision" type="StaticBody2D" parent="."]
+position = Vector2(254, 584)
+z_index = 584
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="GardenSouthCollision"]
+shape = SubResource("FenceCollision")
+
+[node name="SpringCrop_0_0" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(0, 0, 16, 32)
+position = Vector2(157, 478)
+scale = Vector2(1.25, 1.25)
+z_index = 478
+texture_filter = 1
+
+[node name="SpringCrop_0_1" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(16, 0, 16, 32)
+position = Vector2(188, 478)
+scale = Vector2(1.25, 1.25)
+z_index = 478
+texture_filter = 1
+
+[node name="SpringCrop_0_2" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(32, 0, 16, 32)
+position = Vector2(219, 478)
+scale = Vector2(1.25, 1.25)
+z_index = 478
+texture_filter = 1
+
+[node name="SpringCrop_0_3" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(48, 0, 16, 32)
+position = Vector2(250, 478)
+scale = Vector2(1.25, 1.25)
+z_index = 478
+texture_filter = 1
+
+[node name="SpringCrop_0_4" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(64, 0, 16, 32)
+position = Vector2(281, 478)
+scale = Vector2(1.25, 1.25)
+z_index = 478
+texture_filter = 1
+
+[node name="SpringCrop_0_5" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(80, 0, 16, 32)
+position = Vector2(312, 478)
+scale = Vector2(1.25, 1.25)
+z_index = 478
+texture_filter = 1
+
+[node name="SpringCrop_0_6" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(96, 0, 16, 32)
+position = Vector2(343, 478)
+scale = Vector2(1.25, 1.25)
+z_index = 478
+texture_filter = 1
+
+[node name="SpringCrop_1_0" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(32, 32, 16, 32)
+position = Vector2(157, 517)
+scale = Vector2(1.25, 1.25)
+z_index = 517
+texture_filter = 1
+
+[node name="SpringCrop_1_1" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(48, 32, 16, 32)
+position = Vector2(188, 517)
+scale = Vector2(1.25, 1.25)
+z_index = 517
+texture_filter = 1
+
+[node name="SpringCrop_1_2" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(64, 32, 16, 32)
+position = Vector2(219, 517)
+scale = Vector2(1.25, 1.25)
+z_index = 517
+texture_filter = 1
+
+[node name="SpringCrop_1_3" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(80, 32, 16, 32)
+position = Vector2(250, 517)
+scale = Vector2(1.25, 1.25)
+z_index = 517
+texture_filter = 1
+
+[node name="SpringCrop_1_4" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(96, 32, 16, 32)
+position = Vector2(281, 517)
+scale = Vector2(1.25, 1.25)
+z_index = 517
+texture_filter = 1
+
+[node name="SpringCrop_1_5" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(0, 32, 16, 32)
+position = Vector2(312, 517)
+scale = Vector2(1.25, 1.25)
+z_index = 517
+texture_filter = 1
+
+[node name="SpringCrop_1_6" type="Sprite2D" parent="." groups=["forage_crop"]]
+texture = ExtResource("crops")
+region_enabled = true
+region_rect = Rect2(16, 32, 16, 32)
+position = Vector2(343, 517)
+scale = Vector2(1.25, 1.25)
+z_index = 517
+texture_filter = 1
+
+[node name="TownChest" type="Sprite2D" parent="."]
+texture = ExtResource("chest")
+hframes = 1
+vframes = 2
+frame = 0
+position = Vector2(747, 474)
+scale = Vector2(1.5, 1.5)
+z_index = 475
+texture_filter = 1
+
+[node name="BrownCowWest" type="Sprite2D" parent="."]
+texture = ExtResource("cow")
+hframes = 4
+vframes = 3
+frame = 0
+position = Vector2(352, 517)
+scale = Vector2(1.35, 1.35)
+z_index = 517
+texture_filter = 1
+
+[node name="BrownCowEast" type="Sprite2D" parent="."]
+texture = ExtResource("cow")
+hframes = 4
+vframes = 3
+frame = 4
+position = Vector2(1000, 558)
+scale = Vector2(1.35, 1.35)
+z_index = 558
+texture_filter = 1
+
+[node name="RedChickenWest" type="Sprite2D" parent="."]
+texture = ExtResource("chicken")
+hframes = 4
+vframes = 2
+frame = 1
+position = Vector2(420, 548)
+scale = Vector2(1.5, 1.5)
+z_index = 548
+texture_filter = 1
+
+[node name="RedChickenEast" type="Sprite2D" parent="."]
+texture = ExtResource("chicken")
+hframes = 4
+vframes = 2
+frame = 3
+position = Vector2(890, 553)
+scale = Vector2(1.5, 1.5)
+z_index = 553
+texture_filter = 1
+
+[node name="BabyChicken" type="Sprite2D" parent="."]
+texture = ExtResource("baby_chicken")
+hframes = 4
+vframes = 3
+frame = 2
+position = Vector2(925, 580)
+scale = Vector2(1.5, 1.5)
+z_index = 580
+texture_filter = 1
+
+[node name="TownName" type="Label" parent="."]
+text = "WILLOWMERE"
+position = Vector2(507, 278)
+size = Vector2(130, 22)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1.000000, 0.941176, 0.784314, 1.000000)
+theme_override_colors/font_outline_color = Color(0.160784, 0.262745, 0.235294, 1.000000)
+theme_override_constants/outline_size = 4
+mouse_filter = 2
+z_index = 900
+
+[node name="NPC_Mira" type="StaticBody2D" parent="." groups=["village_npc"]]
+position = Vector2(475, 350)
+z_index = 350
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NPC_Mira"]
+shape = SubResource("NpcCollision")
+
+[node name="EditorPreview" type="Sprite2D" parent="NPC_Mira"]
+texture = ExtResource("idle")
+hframes = 4
+vframes = 3
+frame = 1
+position = Vector2(0, -15)
+scale = Vector2(1.35, 1.35)
+modulate = Color(0.941176, 0.713725, 0.780392, 1.000000)
+texture_filter = 1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="NPC_Mira"]
+visible = false
+position = Vector2(0, -15)
+scale = Vector2(1.35, 1.35)
+modulate = Color(0.941176, 0.713725, 0.780392, 1.000000)
+texture_filter = 1
+
+[node name="NameLabel" type="Label" parent="NPC_Mira"]
+text = "MIRA"
+position = Vector2(-50, -59)
+size = Vector2(100, 18)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.941176, 0.713725, 0.780392, 1.000000)
+theme_override_colors/font_outline_color = Color(0.149, 0.231, 0.231, 1)
+theme_override_constants/outline_size = 4
+mouse_filter = 2
+
+[node name="NPC_Bram" type="StaticBody2D" parent="." groups=["village_npc"]]
+position = Vector2(692, 351)
+z_index = 351
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NPC_Bram"]
+shape = SubResource("NpcCollision")
+
+[node name="EditorPreview" type="Sprite2D" parent="NPC_Bram"]
+texture = ExtResource("idle")
+hframes = 4
+vframes = 3
+frame = 2
+position = Vector2(0, -15)
+scale = Vector2(1.35, 1.35)
+modulate = Color(0.717647, 0.835294, 0.937255, 1.000000)
+texture_filter = 1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="NPC_Bram"]
+visible = false
+position = Vector2(0, -15)
+scale = Vector2(1.35, 1.35)
+modulate = Color(0.717647, 0.835294, 0.937255, 1.000000)
+texture_filter = 1
+
+[node name="NameLabel" type="Label" parent="NPC_Bram"]
+text = "BRAM"
+position = Vector2(-50, -59)
+size = Vector2(100, 18)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.717647, 0.835294, 0.937255, 1.000000)
+theme_override_colors/font_outline_color = Color(0.149, 0.231, 0.231, 1)
+theme_override_constants/outline_size = 4
+mouse_filter = 2
+
+[node name="NPC_Juno" type="StaticBody2D" parent="." groups=["village_npc"]]
+position = Vector2(572, 474)
+z_index = 474
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="NPC_Juno"]
+shape = SubResource("NpcCollision")
+
+[node name="EditorPreview" type="Sprite2D" parent="NPC_Juno"]
+texture = ExtResource("idle")
+hframes = 4
+vframes = 3
+frame = 3
+position = Vector2(0, -15)
+scale = Vector2(1.35, 1.35)
+modulate = Color(0.839216, 0.721569, 0.941176, 1.000000)
+texture_filter = 1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="NPC_Juno"]
+visible = false
+position = Vector2(0, -15)
+scale = Vector2(1.35, 1.35)
+modulate = Color(0.839216, 0.721569, 0.941176, 1.000000)
+texture_filter = 1
+
+[node name="NameLabel" type="Label" parent="NPC_Juno"]
+text = "JUNO"
+position = Vector2(-50, -59)
+size = Vector2(100, 18)
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(0.839216, 0.721569, 0.941176, 1.000000)
+theme_override_colors/font_outline_color = Color(0.149, 0.231, 0.231, 1)
+theme_override_constants/outline_size = 4
+mouse_filter = 2
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(575, 430)
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("PlayerCollision")
+
+[node name="EditorPreview" type="Sprite2D" parent="Player"]
+texture = ExtResource("idle")
+hframes = 4
+vframes = 3
+frame = 0
+position = Vector2(0, -15)
+scale = Vector2(1.4, 1.4)
+texture_filter = 1
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="Player"]
+visible = false
+position = Vector2(0, -15)
+scale = Vector2(1.4, 1.4)
+texture_filter = 1
+
+[node name="TownCamera" type="Camera2D" parent="Player"]
+position = Vector2(0, -85)
+zoom = Vector2(1.45, 1.45)
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
+limit_left = 0
+limit_top = 0
+limit_right = 1152
+limit_bottom = 720
+drag_horizontal_enabled = false
+drag_vertical_enabled = false
+enabled = true
